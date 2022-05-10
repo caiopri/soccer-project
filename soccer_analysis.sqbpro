@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="/Users/caiopriszculnik/Documents/Python notebooks/Data Analyst Nanodegree/Project 2/database.sqlite" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="23079"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><current_table name="4,7:mainCountry"/><default_encoding codec=""/><browse_table_settings/></tab_browse><tab_sql><sql name="SQL 1">WITH prep_match_winners AS (
+SELECT
+ct.name AS country_name,
+lg.name AS league_name,
+season,
+date,
+CASE 
+WHEN home_team_goal &gt; away_team_goal THEN home_team_api_id
+WHEN home_team_goal &lt; away_team_goal THEN away_team_api_id END AS winner_team_api_id
+FROM Match mt
+LEFT JOIN Country ct ON mt.country_id = ct.id
+LEFT JOIN League lg ON mt.league_id = lg.id),
+prep_team_attributes AS (
+SELECT 
+team_api_id,
+season,
+AVG(buildUpPlaySpeed) AS avg_speed,
+AVG(buildUpPlayDribbling) AS avg_dribbling,
+AVG(buildUpPlayPassing) AS avg_passing,
+AVG(chanceCreationPassing) AS avg_creation_passing,
+AVG(chanceCreationCrossing) AS avg_creation_crossing,
+AVG(chanceCreationShooting) AS avg_creation_shooting,
+AVG(defencePressure) AS avg_defence_pressure,
+AVG(defenceAggression) AS avg_defence_aggression  
+FROM Team_Attributes
+LEFT JOIN Match USING(date)
+GROUP BY 1, 2
+)
+
+SELECT 
+winner_team_api_id,
+team_long_name,
+pmw.season,
+COUNT(winner_team_api_id),
+avg_speed,
+avg_dribbling,
+avg_passing,
+avg_creation_passing,
+avg_creation_crossing,
+avg_creation_shooting,
+avg_defence_pressure,
+avg_defence_aggression  
+FROM prep_match_winners pmw
+LEFT JOIN prep_team_attributes pta ON pta.team_api_id = pmw.winner_team_api_id AND pta.season = pmw.season
+LEFT JOIN Team tm ON tm.team_api_id = pmw.winner_team_api_id
+WHERE winner_team_api_id IS NOT NULL
+GROUP BY 1, 2, 3
+</sql><sql name="SQL 2">SELECT 
+ta.team_api_id,
+team_long_name,
+season,
+AVG(buildUpPlaySpeed) AS avg_speed,
+AVG(buildUpPlayDribbling) AS avg_dribbling,
+AVG(buildUpPlayPassing) AS avg_passing,
+AVG(chanceCreationPassing) AS avg_creation_passing,
+AVG(chanceCreationCrossing) AS avg_creation_crossing,
+AVG(chanceCreationShooting) AS avg_creation_shooting,
+AVG(defencePressure) AS avg_defence_pressure,
+AVG(defenceAggression) AS avg_defence_aggression  
+FROM Team_Attributes ta
+LEFT JOIN Match mt USING(date)
+LEFT JOIN Team tm USING(team_api_id)
+GROUP BY 1, 2, 3
+ORDER BY 2</sql><sql name="SQL 4">SELECT
+                                ct.name AS country_name,
+                                lg.name AS league_name,
+                                season,
+                                date,
+                                CASE 
+                                    WHEN home_team_goal &gt; away_team_goal THEN home_team_api_id
+                                    WHEN home_team_goal &lt; away_team_goal THEN away_team_api_id END AS winner_team_api_id
+                                CASE 
+                                    WHEN home_team_goal &gt; away_team_goal THEN &quot;home_team_win&quot;
+                                    WHEN home_team_goal &lt; away_team_goal THEN &quot;away_team_win&quot;
+                                    ELSE &quot;draw&quot; END AS match_result
+                               FROM Match mt
+                               LEFT JOIN Country ct ON mt.country_id = ct.id
+                               LEFT JOIN League lg ON mt.league_id = lg.id
+							   </sql><current_tab id="2"/></tab_sql></sqlb_project>
